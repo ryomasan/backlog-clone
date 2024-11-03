@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  backlog-vue:
+    container_name: backlog_vue
+    build:
+      context: ./backlog-vue  # VueのDockerfileがある場所
+    working_dir: /app
+    volumes:
+      - ./backlog-vue/:/app:cached  # Vueのソースコード共有
+      - node_modules:/app/node_modules
+    tty: true
+    ports:
+      - '3000:3000'  # Vueのポートを公開
+    command: npm run dev -- --host  # Nuxt (Vite) サーバを起動
+
+  backlog-laravel:
+    container_name: backlog_laravel
+    build:
+      context: ./backlog-laravel  # LaravelのDockerfileがある場所
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - ./backlog-laravel/:/var/www/html
+    environment:
+      - DB_HOST=backlog_mysql
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    tty: true
+    ports:
+      - '8000:8000'  # Laravelのポートを公開
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: backlog_mysql
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  node_modules:
+  mysql-data:
