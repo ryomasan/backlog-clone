@@ -14,5 +14,5 @@ export default defineNuxtConfig({
       apiBase: 'http://laravel:8000/api',
       compatibilityDate: process.env.COMPATIBILITY_DATE
     }
-  }
+  },
 })

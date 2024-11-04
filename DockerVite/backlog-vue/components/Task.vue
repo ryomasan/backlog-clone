@@ -2,13 +2,10 @@
     <div class="task">
         <div v-for="task in getTasksByStatus" :key="task.name"
             class="task border-solid border-2 border-indigo-600 h-[71px] m-[10px]">
-            <!-- {{ tasks }} -->
-            <!-- {{ getTasksByStatus }} -->
             {{ task.name }}
-            <!-- {{ status }} -->
-            <div class="tags flex gap-1">
-                <div v-for="tag in task.tags" :key="tag" class="tag h-[15px] w-[35px] bg-[#A1AF2F] text-[10px]">
-                    {{ tag }}
+            <div class="tags flex gap-1 overflow-scroll">
+                <div v-for="tag in task.tags" :key="tag.id" class="tag h-[15px] min-w-[35px] bg-[#A1AF2F] text-[#fff] text-[10px] rounded-full px-[5px]">
+                    {{ tag.name }}
                 </div>
             </div>
         </div>
@@ -16,9 +13,15 @@
 </template>
 
 <script setup lang="ts">
+interface Tag {
+    id: number,
+    name: string,
+    isSelected?: boolean
+}
+
 interface Task {
     name: string;
-    tags: string[]; // tagsは文字列の配列
+    tags: Tag[];
     status: string;
 }
 
@@ -40,13 +43,7 @@ const props = defineProps<{
 // ];
 
 const getTasksByStatus = computed(() => {
-    // console.log(props.tasks)
-    // console.log(props.status)
     return props.tasks.filter(task => task.status === props.status.name)
 })
-
-// const addTask = (newTask: any) => {
-//     tasks.push(newTask);
-// }
-
+const emits= defineEmits(['taskNumByStatus']);
 </script>
