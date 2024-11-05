@@ -20,3 +20,5 @@ Route::get('/tags', [TagController::class, 'index']);
 Route::post('/tasks', [TaskController::class, 'store']);
 
 Route::post('/tags', [TagController::class, 'store']);
+
+Route::put('/tasks/{id}', [TaskController::class, 'update']);

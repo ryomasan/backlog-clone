@@ -14,7 +14,7 @@ class taskController extends Controller
     public function index()
     {
         // $tasks = Task::all();
-        $tasks = Task::with('tags')->orderBy('id', 'desc')->get(); 
+        $tasks = Task::with('tags')->orderBy('id', 'desc')->get();
         // dd($tasks);
         return response()->json($tasks);
     }
@@ -32,9 +32,18 @@ class taskController extends Controller
      */
     public function store(Request $request)
     {
+        // 新しいタスクのステータスを取得
+        $status = $request->status;
+
+        // 同じステータスを持つタスクのorderを+1する
+        Task::where('status', $status)
+            ->whereNotNull('order') // orderがNULLでないタスクを対象
+            ->increment('order');
+
         $task = Task::create([
             'name' => $request->name,
-            'status' => $request->status
+            'status' => $request->status,
+            'order' => $request->order
         ]);
 
         if ($request->has('tags')) {
@@ -65,7 +74,10 @@ class taskController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $task = Task::find($id);
+        $task->order = $request->order;
+        $task->save();
+        return response()->json($task);
     }
 
     /**

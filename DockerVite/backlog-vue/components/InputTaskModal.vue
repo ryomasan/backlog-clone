@@ -1,24 +1,32 @@
 <template>
     <div @click="clickModal"
-        class="add-task-modal flex justify-center items-center content-center h-full w-full bg-[#000] opacity-30 fixed top-0 left-0 z-30">
-        <div class="modal-content h-[330px] w-[450px] bg-[#fff]">
-            <p>タスクの追加</p>
-            <input v-model="inputTask" type="text" placeholder="タスクを入力...">
-            <p>タグ<span @click="toggleTagList">{{ isOpenTagToggle ? '-' : '+' }}</span></p>
-            <div v-if="isOpenTagToggle">
+        class="add-task-modal flex justify-center items-center content-center h-full w-full bg-[rgba(0,0,0,0.3)] fixed top-0 left-0 z-30">
+        <div class="modal-content w-[450px] flex flex-col items-center justify-center bg-[#fff] opacity-100"
+            :class='isOpenTagToggle ? "h-[522px]" : "h-[330px]"'>
+            <div class="text-center my-[20px]">タスクの追加</div>
+            <div class="add-task">
+                <input v-model="inputTask" class="h-[51px] w-[316px]" type="text" placeholder="タスクを入力...">
+                <p>タグ<span @click="toggleTagList">{{ isOpenTagToggle ? '-' : '+' }}</span></p>
+            </div>
+            <div v-if="isOpenTagToggle" class="mr-[80px]">
                 <div class="tag-list h-[220px] w-[170px] border-solid border-2 border-indigo-600">
-                    <div class="tag-header bg-[#000] h-[26px] text-center text-white">タグ一覧</div>
-                    <div @click="selectTags(index)" v-for="(tag, index) in tags" :key="index"
+                    <div class="tag-header bg-[#000] h-[26px] text-center text-[#fff]">タグ一覧</div>
+                    <div @click="selectTags(index)" v-for="(tag, index) in props.tags" :key="index"
                         class="tags flex justify-between">
-                        <div class="tag_name">{{ tag.name }}</div>
-                        <div v-if="tag.isSelected" class="tag_checked">✔︎</div>
+                        <div class="tag_name">
+                            {{ tag.name }}<span v-if="tag.isSelected" class="tag_checked">✔︎</span>
+                        </div>
                     </div>
                 </div>
-                <input v-model="tagName" type="text" placeholder="新しいタグを入力..."><button
-                    @click="createTag(tagName)">タグ作成</button>
+                <div class="create-tag mt-[5px]">
+                    <input v-model="tagName" type="text" placeholder="新しいタグを入力..."><button
+                        @click="createTag(tagName)">タグ作成</button>
+                </div>
             </div>
-            <button @click="closeTaskModal">キャンセル</button>
-            <button @click="addTask">追加</button>
+            <div class="button-part flex gap-3  mr-[200px]" :class="isOpenTagToggle ? 'mt-[20px]' : 'mt-[87px]'">
+                <button @click="closeTaskModal">キャンセル</button>
+                <button @click="addTask">追加</button>
+            </div>
         </div>
     </div>
 </template>
@@ -32,9 +40,17 @@ interface Tag {
     isSelected?: boolean
 }
 
+interface Task {
+    name: string;
+    tags: Tag[];
+    status: string;
+}
+
 const props = defineProps<{
     isOpenModal: Boolean;
     taskStatus: string;
+    tasks: Task[];
+    tags: Tag[];
 }>();
 
 const isOpenTagToggle = ref(false)
@@ -45,27 +61,16 @@ const isOpenTagToggle = ref(false)
 //     { name: "tag3", isSelected: false },
 // ])
 
-const tags = reactive<Tag[]>([]);
+// const tags = ref<Tag[]>([]);
 
 const toggleTagList = async () => {
     isOpenTagToggle.value = !isOpenTagToggle.value
-    // await axios.get('http://localhost:8000/api/tags')
-    const response = await fetch('http://localhost:8000/api/tags');
-    try {
-        if (!response.ok) {
-            throw new Error("Failed to fetch tags");
-        }
-        const data = await response.json(); // Convert response to JSON
-        tags.splice(0, tags.length, ...data.map((tag: Tag) => ({ ...tag, isSelected: false }))); // Clear and update the tags
-    }
-    catch (error: any) {
-        console.error("Server responded with a status:", error);
-    };
 }
 
 const selectTags = (index: number) => {
-    tags[index].isSelected = !tags[index].isSelected
+    props.tags[index].isSelected = !props.tags[index].isSelected
 }
+
 const inputTask = ref<string>("");
 const tagName = ref<string>("");
 
@@ -87,7 +92,7 @@ const createTag = async (tagName: string) => {
                 throw new Error("Failed to fetch tags");
             }
             const data = await response.json();
-            tags.push(data);
+            props.tags.push(data);
             // tags.splice(0, tags.length, ...data);
         } catch (error: any) {
             console.error("Server responded with a status:", error);
@@ -109,13 +114,13 @@ const clickModal = (e: any) => {
 
 const addTask = (newTask: Object): void => {
     if (inputTask) {
-        const selectedTagsObj = tags.filter(tag => tag.isSelected === true);
+        const selectedTagsObj = props.tags.filter(tag => tag.isSelected === true);
         const selectedTags = selectedTagsObj.map(obj => Object.values(obj)[0])
-        console.log(inputTask);
         newTask = {
             name: inputTask.value,
             tags: selectedTags,
-            status: props.taskStatus
+            status: props.taskStatus,
+            order: 1
         };
         emits("addTask", newTask);
     } else {

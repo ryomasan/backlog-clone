@@ -15,7 +15,8 @@
     "click-outside-vue3": "^4.0.1",
     "nuxt": "^3.13.2",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",

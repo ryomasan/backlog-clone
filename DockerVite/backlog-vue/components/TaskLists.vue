@@ -5,13 +5,12 @@
         </div>
         <!-- <Task v-for="task in tasks" :key="task.name" :tasks="tasks" :status="status" /> -->
         <div class="h-[500px] mt-[10px] mb-[10px] overflow-y-scroll">
-            <Task :tasks="tasks" :status="status"/>
+            <Task :tasks="tasks" :filteredTasks="filteredTasks" :status="status" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-
 interface Tag {
     id: number,
     name: string,
@@ -19,6 +18,7 @@ interface Tag {
 }
 
 interface Task {
+    id: number,
     name: string;
     tags: Tag[];
     status: string;
@@ -32,12 +32,12 @@ interface Status {
 const props = defineProps<{
     status: Status;
     tasks: Task[];
+    filteredTasks: Task[];
 }>();
 
-const emits = defineEmits(['openTaskModal', 'taskNumByStatus']);
+const emits = defineEmits(['openTaskModal']);
 
 const openTaskModal = (status: string) => {
     emits("openTaskModal", status);
 }
-
 </script>
