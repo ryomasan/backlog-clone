@@ -1,7 +1,5 @@
 <template>
     <div>
-        <!-- <draggable v-model="tasksByStatus" draggable=".task-content" item-key="name" @end="onDragEnd" group="tasks"
-            :animation="300" :class="props.status.name"> -->
         <draggable v-model="localTasks" draggable=".task-content" item-key="name" @end="onDragEnd" group="tasks"
             :animation="300" :class="props.status.name" >
         <template #item="{ element: task }">
@@ -20,9 +18,6 @@
         </draggable>
     </div>
 </template>
-
-
-
 
 <script setup lang="ts">
 import draggable from "vuedraggable";
@@ -52,13 +47,6 @@ const props = defineProps<{
     status: Status;
 }>();
 
-// const tasks: Task[] = [
-//     { name: "環境構築", tags: ["tag1", "tag2"], status: "未対応" },
-//     { name: "トップ画面UI作成", tags: "tag1", status: "処理中" },
-//     { name: "フィルター機能", tags: ["tag2", "tag3"], status: "レビュー中" },
-//     { name: "タスク保存機能", tags: ["tag1", "tag3"], status: "完了" },
-// ];
-
 const getTasksByStatus = computed(() => {
     return props.filteredTasks.length > 0
         ? props.filteredTasks.filter(task => task.status === props.status.name)
@@ -67,30 +55,16 @@ const getTasksByStatus = computed(() => {
 
 const localTasks = ref<Task[]>([]);
 
-
-// const tasksByStatus = ref<any>([
-//     props.tasks.filter(task => task.status === '未対応'),
-//     props.tasks.filter(task => task.status === '処理中'),
-//     props.tasks.filter(task => task.status === 'レビュー中'),
-//     props.tasks.filter(task => task.status === '完了')
-// ]);
-
-
 watch(getTasksByStatus, (newTasks) => {
     localTasks.value = [...newTasks];
-    // tasksByStatus.value = [...newTasks];
 }, { immediate: true });
 
 const onDragEnd = async (event: any) => {
     const movedTask = event.item._underlying_vm_;
     const newOrder = event.newIndex + 1;
     const newStatus = event.to.classList[0];
-    // const newStatus = props.status.name;
     movedTask.status = newStatus;
     movedTask.order = newOrder;
-
-    // tasksByStatus.value = [...tasksByStatus.value];
-    // console.log(event.to.closest('[data-status]').dataset.status);
 
     try {
         const updatedTasks = {
@@ -108,11 +82,9 @@ const onDragEnd = async (event: any) => {
         if (!response.ok) {
             throw new Error("Failed to fetch tags");
         }
-        // Fetch updated tasks and set them to `localTasks`
         const tasksResponse = await fetch('http://localhost:8000/api/tasks');
         const tasksData = await tasksResponse.json();
-        console.log(tasksData);
-        // tasksByStatus.value = tasksData; // Assign updated tasks
+        
         if (!tasksResponse.ok) {
             throw new Error("Failed to fetch updated tasks");
         }

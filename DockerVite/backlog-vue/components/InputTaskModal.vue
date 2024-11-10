@@ -57,14 +57,6 @@ const props = defineProps<{
 
 const isOpenTagToggle = ref(false)
 
-// let tags = reactive([
-//     { name: "tag1", isSelected: true },
-//     { name: "tag2", isSelected: false },
-//     { name: "tag3", isSelected: false },
-// ])
-
-// const tags = ref<Tag[]>([]);
-
 const toggleTagList = async () => {
     isOpenTagToggle.value = !isOpenTagToggle.value
 }
@@ -95,7 +87,6 @@ const createTag = async (tagName: string) => {
             }
             const data = await response.json();
             props.tags.push(data);
-            // tags.splice(0, tags.length, ...data);
         } catch (error: any) {
             console.error("Server responded with a status:", error);
         }
@@ -118,7 +109,6 @@ const addTask = (newTask: Object): void => {
     if (inputTask) {
         const selectedTagsObj = props.tags.filter(tag => tag.isSelected === true);
         const selectedTags = selectedTagsObj.map(obj => obj.id)
-        // console.log(selectedTags);
         newTask = {
             name: inputTask.value,
             tags: selectedTags,

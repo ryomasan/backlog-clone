@@ -1,7 +1,5 @@
 <!-- pages/index.vue -->
 <template>
-    <!-- <Header /> -->
-    <!-- <div class="flex h-[816px] w-[1280px]"> -->
     <div class="main flex flex-col bg-[#f0f0f0] p-[50px]">
         <div class="filter">
             <p>タグ</p>
@@ -228,19 +226,6 @@ onMounted(async () => {
         const taskData = await responseTasks.json();
         tasks.value = taskData;
         originalTasks.value = taskData.map((task: Task) => ({ ...task }));
-        // filterTags();
-        // const tasksByStatus = data.reduce((acc: any, item: any) => {
-        //     if (!acc[item.status]) {
-        //         acc[item.status] = [];
-        //     }
-        //     acc[item.status].push(item);
-        //     return acc;
-        // }, {})
-        // Object.keys(tasksByStatus).forEach(status => {
-        //     tasksByStatus[status].forEach((task:any, index:number) => {
-        //         task.order = index + 1;
-        //     });
-        // });
     }
     catch (error) {
         console.error("Server responded with a status:", error);
