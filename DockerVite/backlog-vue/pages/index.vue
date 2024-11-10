@@ -2,7 +2,7 @@
 <template>
     <!-- <Header /> -->
     <!-- <div class="flex h-[816px] w-[1280px]"> -->
-    <div class="main flex flex-col bg-[#f0f0f0] p-[50px] ">
+    <div class="main flex flex-col bg-[#f0f0f0] p-[50px]">
         <div class="filter">
             <p>タグ</p>
             <div @click="toggleTagFilter"
@@ -16,7 +16,7 @@
                 <div class="select-option h-[130px] overflow-y-scroll">
                     <div @click="resetTags()" class="unsigned m-[5px]">未選択<span v-if="unSelected"
                             class="tag_checked">✔︎</span></div>
-                    <div @click="selectTags(index)" v-for="(tag, index) in seachedTags" :key="index"
+                    <div @click.stop="selectTags(index)" v-for="(tag, index) in seachedTags" :key="index"
                         class="tag-item m-[5px]">
                         <div class="tag_name">{{ tag.name }}<span v-if="tag.isSelected" class="tag_checked">✔︎</span>
                         </div>
@@ -27,8 +27,6 @@
             </div>
         </div>
         <div class="flex justify-between mt-[40px]">
-            <InputTaskModal v-if="isOpenModal" :isOpenModal="isOpenModal" @addTask="addTask" :tasks="tasks" :tags="tags"
-                :taskStatus="taskStatus" @closeTaskModal="closeTaskModal" />
             <div v-for="(status, index) in statusList" :key="index" class="text-3xl font-bold relative">
                 <div class="task-status flex gap-2">
                     <div class="task-color w-[16px] h-[16px]" :class="taskColor(status.name)">⚫︎</div>
@@ -38,18 +36,22 @@
                         {{ taskCount(status.name) }}
                     </div>
                 </div>
-                <TaskLists :status="status" :tasks="tasks" :filteredTasks="filteredTasks"
-                    @openTaskModal="openTaskModal" />
+                <TaskLists :status="status" :tasks="tasks" :filteredTasks="filteredTasks" @openTaskModal="openTaskModal"
+                    @deleteTask='deleteTask' :class="status"/>
             </div>
         </div>
     </div>
+    <InputTaskModal v-if="isOpenModal" :isOpenModal="isOpenModal" @addTask="addTask" :tasks="tasks" :tags="tags"
+        :taskStatus="taskStatus" @closeTaskModal="closeTaskModal" />
 </template>
 
 <script setup lang="ts">
+import draggable from "vuedraggable";
+
 interface Tag {
     id: number,
     name: string,
-    isSelected?: boolean
+    isSelected: boolean
 }
 
 interface Task {
@@ -57,6 +59,7 @@ interface Task {
     name: string;
     tags: Tag[];
     status: string;
+    order: number;
 }
 
 const statusList = [
@@ -66,14 +69,7 @@ const statusList = [
     { id: 4, name: "完了" }
 ]
 
-// let tasks = ref<Task[]>([
-//     { name: "環境構築", tags: ["tag1", "tag2"], status: "未対応" },
-//     { name: "トップ画面UI作成", tags: "tag1", status: "未対応" },
-//     { name: "フィルター機能", tags: ["tag2", "tag3"], status: "レビュー中" },
-//     { name: "タスク保存機能", tags: ["tag1", "tag3"], status: "完了" },
-// ]);
-
-let tasks = ref<Task[]>([]);
+const tasks = ref<Task[]>([]);
 
 const tags = ref<Tag[]>([]);
 
@@ -84,7 +80,6 @@ const isOpenFilter = ref<boolean>(false)
 const isOpenModal = ref<boolean>(false)
 
 let taskStatus = ref('未対応');
-
 
 const seachedTags = computed(() => {
     return tags.value.filter(tag => tag.name.includes(seachedTag.value))
@@ -104,12 +99,14 @@ const resetTags = () => {
 }
 
 const selectTags = (index: number) => {
-    unSelected.value = false;
+    if (tags.value[index].isSelected == undefined) {
+        tags.value[index].isSelected = true
+    };
     tags.value[index].isSelected = !tags.value[index].isSelected
+    unSelected.value = false;
 }
 
 const filteredTasks = ref<Task[]>([])
-
 
 let originalTasks = ref<Task[]>([])
 
@@ -125,10 +122,9 @@ const filterTags = () => {
     filteredTasks.value = originalTasks.value.filter(task => {
         const taskTags = task.tags.map(tag => tag.name);
         return selectedTags.every(selectTag => taskTags.includes(selectTag))
-        // task.tags.some(tag => selectedTags.includes(tag.name))
     });
 
-    if (selectedTags.length !== 0  && filteredTasks.value.length === 0) {
+    if (selectedTags.length !== 0 && filteredTasks.value.length === 0) {
         tasks.value = [];
     }
 }
@@ -136,19 +132,46 @@ const filterTags = () => {
 const taskColor = (status: string) => {
     switch (status) {
         case '未対応':
-            return 'text-[#ED8077]'; // Change to appropriate color
+            return 'text-[#ED8077]';
         case '処理中':
-            return 'text-[#4487C5]'; // Adjust color as needed
+            return 'text-[#4487C5]';
         case 'レビュー中':
-            return 'text-[#5EB5A6]'; // Adjust color as needed
+            return 'text-[#5EB5A6]';
         case '完了':
-            return 'text-[#A1AF2F]'; // Adjust color as needed
+            return 'text-[#A1AF2F]';
     }
 }
+
 
 const openTaskModal = (status: string): void => {
     isOpenModal.value = true
     taskStatus.value = status
+}
+
+const deleteTask = async (taskId: number) => {
+    const deletedTasks = {
+        id: taskId,
+    };
+
+    const response = await fetch(`http://localhost:8000/api/delete-task/${taskId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json' // 送信するデータの形式
+        },
+        body: JSON.stringify(deletedTasks)
+    });
+    try {
+        if (!response.ok) {
+            throw new Error("Failed to fetch tags");
+        }
+        const data = await response.json(); // Convert response to JSON
+        originalTasks.value = originalTasks.value.filter(task => task.id != taskId);
+        tasks.value = [...originalTasks.value];
+        console.log(tasks);
+    }
+    catch (error: any) {
+        console.error("Server responded with a status:", error);
+    };
 }
 
 const closeTaskModal = (): void => {
@@ -156,7 +179,7 @@ const closeTaskModal = (): void => {
 }
 
 const taskCount = (statusName: string) => {
-    return filteredTasks.value.filter(task => task.status === statusName).length;
+    return tasks.value.filter(task => task.status === statusName).length;
 }
 
 const addTask = async (newTask: Task) => {
@@ -173,21 +196,20 @@ const addTask = async (newTask: Task) => {
         };
     };
 
-    const response = await fetch('http://localhost:8000/api/tasks', {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json' // 送信するデータの形式
-        },
-        body: JSON.stringify(newTask, getCircularReplacer())
-    });
     try {
+        const response = await fetch('http://localhost:8000/api/register-tasks', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newTask, getCircularReplacer())
+        });
         if (!response.ok) {
             throw new Error("Failed to fetch tasks");
         }
         const data = await response.json();
         tasks.value.unshift(data);
-        // originalTasks.value.unshift(data);
-        // tasks.value.splice(0, tasks.value.length, ...data);
+        originalTasks.value.unshift(data)
         closeTaskModal();
     } catch (error: any) {
         console.error("Server responded with a status:", error);
@@ -203,10 +225,10 @@ onMounted(async () => {
         }
         const tagData = await responseTags.json();
         tags.value = tagData;
-        const taskData = await responseTasks.json(); // Convert response to JSON
-        originalTasks.value = taskData.map((task: Task) => ({ ...task })); // Store original tasks
-        // tasks.value.splice(0, tasks.value.length, ...originalTasks.value); // Clear and update the tags
-        filterTags();
+        const taskData = await responseTasks.json();
+        tasks.value = taskData;
+        originalTasks.value = taskData.map((task: Task) => ({ ...task }));
+        // filterTags();
         // const tasksByStatus = data.reduce((acc: any, item: any) => {
         //     if (!acc[item.status]) {
         //         acc[item.status] = [];

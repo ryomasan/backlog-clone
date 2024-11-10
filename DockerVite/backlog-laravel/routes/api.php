@@ -17,8 +17,10 @@ Route::get('/tasks', [TaskController::class, 'index']);
 
 Route::get('/tags', [TagController::class, 'index']);
 
-Route::post('/tasks', [TaskController::class, 'store']);
+Route::post('/register-tasks', [TaskController::class, 'store']);
 
-Route::post('/tags', [TagController::class, 'store']);
+Route::post('/register-tags', [TagController::class, 'store']);
 
-Route::put('/tasks/{id}', [TaskController::class, 'update']);
+Route::post('/update-task-status/{id}', [TaskController::class, 'update']);
+
+Route::post('/delete-task/{id}', [TaskController::class, 'destroy']);

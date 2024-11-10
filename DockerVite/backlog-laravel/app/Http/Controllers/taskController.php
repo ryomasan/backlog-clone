@@ -14,8 +14,8 @@ class taskController extends Controller
     public function index()
     {
         // $tasks = Task::all();
-        $tasks = Task::with('tags')->orderBy('id', 'desc')->get();
-        // dd($tasks);
+        // $tasks = Task::with('tags')->orderBy('id', 'desc')->get();
+        $tasks = Task::with('tags')->orderBy('order', 'asc')->get();
         return response()->json($tasks);
     }
 
@@ -43,13 +43,12 @@ class taskController extends Controller
         $task = Task::create([
             'name' => $request->name,
             'status' => $request->status,
-            'order' => $request->order
+            'order' => 1
         ]);
 
         if ($request->has('tags')) {
             $task->tags()->sync($request->tags); // タグを中間テーブルに挿入
         }
-
         return response()->json($task->load('tags'));
     }
 
@@ -72,19 +71,60 @@ class taskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
-        $task = Task::find($id);
-        $task->order = $request->order;
+        $task = Task::findOrfail($id);
+        $oldStatus = $task->status;
+        $newStatus = $request->status;
+        $task->status = $newStatus;
+        $oldOrder = $task->order;
+        $newOrder = $request->order;
+        $task->order = $newOrder;
+
+        if ($oldStatus == $newStatus) {
+            if ($newOrder < $oldOrder) {
+                Task::where('order', '<', $oldOrder)
+                    ->where('order', '>=', $newOrder)
+                    ->whereNotNull('order')
+                    ->increment('order');
+            } elseif ($newOrder > $oldOrder) {
+                Task::where('order', '>', $oldOrder)
+                    ->where('order', '<=', $newOrder)
+                    ->whereNotNull('order')
+                    ->decrement('order');
+            }
+        } else {
+            Task::where('status', $oldStatus)
+                ->where('order', '>', $oldOrder)
+                ->decrement('order');
+
+            Task::where('status', $newStatus)
+                ->where('order', '>=', $newOrder)
+                ->increment('order');
+        }
+        $tasks = Task::orderBy('order')->get();
         $task->save();
-        return response()->json($task);
+        return response()->json($tasks);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        //
+        // Find the task to delete
+        $task = Task::findOrFail($id);
+        $deletedTaskStatus = $task->status;
+        $deletedTaskOrder = $task->order;
+        // Delete the task
+        $task->delete();
+
+        // Update order for tasks with a higher order than the deleted task
+        Task::where('status', $deletedTaskStatus)
+            ->where('order', '>', $deletedTaskOrder)
+            ->whereNotNull('order')
+            ->decrement('order');
+
+        return response()->json($task);
     }
 }

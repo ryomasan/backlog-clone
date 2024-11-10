@@ -1,6 +1,24 @@
 export default defineNuxtConfig({
+  // modules: [
+  //   'nuxt-fontawesome'
+  // ],
+  // fontawesome: {
+  //   imports: [
+  //     {
+  //       set: '@fortawesome/free-brands-svg-icons',
+  //       icons: ['fab']
+  //     }
+  //   ]
+  // },
+  build: {
+    transpile: [
+      '@fortawesome/vue-fontawesome',
+      '@fortawesome/fontawesome-svg-core',
+      '@fortawesome/free-brands-svg-icons'
+    ]
+  },
   devtools: { enabled: true },
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '@fortawesome/fontawesome-svg-core/styles.css'],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -15,4 +33,5 @@ export default defineNuxtConfig({
       compatibilityDate: process.env.COMPATIBILITY_DATE
     }
   },
+  plugins: ['~/plugins/fontawesome.js']
 })

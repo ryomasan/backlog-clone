@@ -1,6 +1,6 @@
 <template>
     <div @click="clickModal"
-        class="add-task-modal flex justify-center items-center content-center h-full w-full bg-[rgba(0,0,0,0.3)] fixed top-0 left-0 z-30">
+        class="add-task-modal h-full w-full fixed top-0 left-0 z-30 flex justify-center items-center content-center bg-[rgba(0,0,0,0.3)]">
         <div class="modal-content w-[450px] flex flex-col items-center justify-center bg-[#fff] opacity-100"
             :class='isOpenTagToggle ? "h-[522px]" : "h-[330px]"'>
             <div class="text-center my-[20px]">タスクの追加</div>
@@ -41,9 +41,11 @@ interface Tag {
 }
 
 interface Task {
+    id: number;
     name: string;
     tags: Tag[];
     status: string;
+    order: number;
 }
 
 const props = defineProps<{
@@ -79,7 +81,7 @@ const createTag = async (tagName: string) => {
         const newTag = {
             name: tagName,
         };
-        const response = await fetch('http://localhost:8000/api/tags', {
+        const response = await fetch('http://localhost:8000/api/register-tags', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json' // 送信するデータの形式
@@ -115,7 +117,8 @@ const clickModal = (e: any) => {
 const addTask = (newTask: Object): void => {
     if (inputTask) {
         const selectedTagsObj = props.tags.filter(tag => tag.isSelected === true);
-        const selectedTags = selectedTagsObj.map(obj => Object.values(obj)[0])
+        const selectedTags = selectedTagsObj.map(obj => obj.id)
+        // console.log(selectedTags);
         newTask = {
             name: inputTask.value,
             tags: selectedTags,

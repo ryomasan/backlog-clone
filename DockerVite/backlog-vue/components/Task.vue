@@ -1,41 +1,49 @@
 <template>
-    <div class="task">
-        <draggable v-model="getTasksByStatus" draggable=".task-content" :group="tasks" item-key="name"
-            @start="onDragStart" @end="onDragEnd">
-            <template #item="{ element: task }">
-                <div class="task-content border-solid border-2 border-indigo-600 h-[71px] m-[10px]">
-                    {{ task.name }}
-                    <div class="tags flex flex-wrap gap-1 overflow-scroll">
-                        <div v-for="tag in task.tags" :key="tag.id"
-                            class="tag h-[15px] min-w-[35px] bg-[#A1AF2F] text-[#fff] text-[10px] rounded-full px-[5px]">
-                            {{ tag.name }}
-                        </div>
+    <div>
+        <!-- <draggable v-model="tasksByStatus" draggable=".task-content" item-key="name" @end="onDragEnd" group="tasks"
+            :animation="300" :class="props.status.name"> -->
+        <draggable v-model="localTasks" draggable=".task-content" item-key="name" @end="onDragEnd" group="tasks"
+            :animation="300" :class="props.status.name" >
+        <template #item="{ element: task }">
+            <div class="task-content border-solid border-2 border-indigo-600 h-[71px] m-[10px] relative">
+                {{ task.name }}
+                <div class="tags flex flex-wrap gap-1 overflow-scroll">
+                    <div v-for="tag in task.tags" :key="tag.id"
+                        class="tag h-[15px] min-w-[35px] bg-[#A1AF2F] text-[#fff] text-[10px] rounded-full px-[5px]">
+                        {{ tag.name }}
                     </div>
                 </div>
-            </template>
+                <font-awesome-icon @click="deleteTask(task.id)" icon="trash-can"
+                    class="absolute bottom-0 right-0 p-[5px]" />
+            </div>
+        </template>
         </draggable>
     </div>
 </template>
 
+
+
+
 <script setup lang="ts">
 import draggable from "vuedraggable";
-
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 interface Tag {
-    id: number,
-    name: string,
-    isSelected?: boolean
+    id: number;
+    name: string;
+    isSelected?: boolean;
 }
 
 interface Task {
-    id: number,
+    id: number;
     name: string;
     tags: Tag[];
     status: string;
+    order: number;
 }
 
 interface Status {
     id: number;
-    name: string; // tagsは文字列の配列
+    name: string;
 }
 
 const props = defineProps<{
@@ -44,8 +52,6 @@ const props = defineProps<{
     status: Status;
 }>();
 
-const localTasks = ref([...props.tasks]);
-
 // const tasks: Task[] = [
 //     { name: "環境構築", tags: ["tag1", "tag2"], status: "未対応" },
 //     { name: "トップ画面UI作成", tags: "tag1", status: "処理中" },
@@ -53,57 +59,74 @@ const localTasks = ref([...props.tasks]);
 //     { name: "タスク保存機能", tags: ["tag1", "tag3"], status: "完了" },
 // ];
 
-const onDragStart = (event: any) => {
-    console.log(event);
-}
+const getTasksByStatus = computed(() => {
+    return props.filteredTasks.length > 0
+        ? props.filteredTasks.filter(task => task.status === props.status.name)
+        : props.tasks.filter(task => task.status === props.status.name);
+})
 
-const onDragEnd = async (event: any, taskId: number) => {
+const localTasks = ref<Task[]>([]);
+
+
+// const tasksByStatus = ref<any>([
+//     props.tasks.filter(task => task.status === '未対応'),
+//     props.tasks.filter(task => task.status === '処理中'),
+//     props.tasks.filter(task => task.status === 'レビュー中'),
+//     props.tasks.filter(task => task.status === '完了')
+// ]);
+
+
+watch(getTasksByStatus, (newTasks) => {
+    localTasks.value = [...newTasks];
+    // tasksByStatus.value = [...newTasks];
+}, { immediate: true });
+
+const onDragEnd = async (event: any) => {
     const movedTask = event.item._underlying_vm_;
-    console.log(movedTask);
-    taskId = movedTask.id;
-    // const oldOrder = event.oldIndex;
-    const newOrder = event.newIndex;
-    // const oldStatus = event.item._underlying_vm_.status;
-    const newStatus = props.status.name;  // ドロップされたステータス列
+    const newOrder = event.newIndex + 1;
+    const newStatus = event.to.classList[0];
+    // const newStatus = props.status.name;
+    movedTask.status = newStatus;
+    movedTask.order = newOrder;
 
-    console.log(newStatus);
-    // if(newOrder > oldOrder){
+    // tasksByStatus.value = [...tasksByStatus.value];
+    // console.log(event.to.closest('[data-status]').dataset.status);
 
-    // }
-    const updatedTasks = {
-        id: taskId,
-        status: newStatus,
-        order: newOrder
-    };
-
-    const response = await fetch(`http://localhost:8000/api/tasks/${taskId}`, {
-        method: "PUT",
-        headers: {
-            'Content-Type': 'application/json' // 送信するデータの形式
-        },
-        body: JSON.stringify(updatedTasks)
-    });
     try {
+        const updatedTasks = {
+            status: newStatus,
+            order: newOrder
+        };
+
+        const response = await fetch(`http://localhost:8000/api/update-task-status/${movedTask.id}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json' // 送信するデータの形式
+            },
+            body: JSON.stringify(updatedTasks)
+        });
         if (!response.ok) {
             throw new Error("Failed to fetch tags");
         }
-        const data = await response.json(); // Convert response to JSON
-        // tags.value.splice(0, tags.value.length, ...data.map((tag: Tag) => ({ ...tag, isSelected: false }))); // Clear and update the tags
+        // Fetch updated tasks and set them to `localTasks`
+        const tasksResponse = await fetch('http://localhost:8000/api/tasks');
+        const tasksData = await tasksResponse.json();
+        console.log(tasksData);
+        // tasksByStatus.value = tasksData; // Assign updated tasks
+        if (!tasksResponse.ok) {
+            throw new Error("Failed to fetch updated tasks");
+        }
+
     }
     catch (error: any) {
         console.error("Server responded with a status:", error);
     };
 }
 
-const getTasksByStatus = computed(() => {
-    if (props.filteredTasks.length > 0) {
-        return props.filteredTasks.filter(task => task.status === props.status.name);     
-    } else {
-        return props.tasks.filter(task => task.status === props.status.name)
-    }
-})
-// const getTasksByStatus = computed(() => {
-//     return props.filteredTasks.filter(task => task.status === props.status.name);
-// });
+const emits = defineEmits(['deleteTask'])
+
+const deleteTask = async (taskId: number) => {
+    emits('deleteTask', taskId)
+}
 
 </script>
