@@ -108,7 +108,8 @@ const filteredTasks = ref<Task[]>([])
 
 let originalTasks = ref<Task[]>([])
 
-const filterTags = () => {
+const filterTags = (event:any) => {
+    event.preventDefault();
     const selectedTags = tags.value.filter(tag => tag.isSelected).map(tag => tag.name);
 
     // タグが選択されていない場合は全てのタスクを返す

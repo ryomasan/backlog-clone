@@ -83,12 +83,14 @@ class taskController extends Controller
 
         if ($oldStatus == $newStatus) {
             if ($newOrder < $oldOrder) {
-                Task::where('order', '<', $oldOrder)
+                Task::where('status', $oldStatus)
+                    ->where('order', '<', $oldOrder)
                     ->where('order', '>=', $newOrder)
                     ->whereNotNull('order')
                     ->increment('order');
             } elseif ($newOrder > $oldOrder) {
-                Task::where('order', '>', $oldOrder)
+                Task::where('status', $oldStatus)
+                    ->where('order', '>', $oldOrder)
                     ->where('order', '<=', $newOrder)
                     ->whereNotNull('order')
                     ->decrement('order');
@@ -97,7 +99,6 @@ class taskController extends Controller
             Task::where('status', $oldStatus)
                 ->where('order', '>', $oldOrder)
                 ->decrement('order');
-
             Task::where('status', $newStatus)
                 ->where('order', '>=', $newOrder)
                 ->increment('order');
