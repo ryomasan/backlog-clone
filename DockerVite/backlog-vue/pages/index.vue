@@ -35,7 +35,7 @@
                     </div>
                 </div>
                 <TaskLists :status="status" :tasks="tasks" :filteredTasks="filteredTasks" @openTaskModal="openTaskModal"
-                    @deleteTask='deleteTask' :class="status"/>
+                    @deleteTask='deleteTask' :class="status" />
             </div>
         </div>
     </div>
@@ -108,7 +108,7 @@ const filteredTasks = ref<Task[]>([])
 
 let originalTasks = ref<Task[]>([])
 
-const filterTags = (event:any) => {
+const filterTags = (event: any) => {
     event.preventDefault();
     const selectedTags = tags.value.filter(tag => tag.isSelected).map(tag => tag.name);
 
