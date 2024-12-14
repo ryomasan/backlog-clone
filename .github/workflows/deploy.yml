@@ -11,12 +11,22 @@ jobs:
     steps:
       # デプロイする
       - name: Deploy
-        run: |
-          # PRIVATE_KEY をファイルに書き込む
-          echo "${{ secrets.PRIVATE_KEY }}" > private_key
-          chmod 600 private_key
+        uses: ./.github/workflows/deploy.yml
+        with:
+          host: ${{ secrets.HOST_NAME }}
+          username: ${{ secrets.USER_NAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_DIR }}
+            git pull origin main
+            
+        # run: |
+        #   # PRIVATE_KEY をファイルに書き込む
+        #   echo "${{ secrets.PRIVATE_KEY }}" > private_key
+        #   chmod 600 private_key
           
-          # SSH接続してリポジトリのディレクトリで git pull
-          ssh -oStrictHostKeyChecking=accept-new -i private_key -v ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} "
-            cd /home/ec2-user/backlog-clone && git pull origin main
-          "
+        #   # SSH接続してリポジトリのディレクトリで git pull
+        #   ssh -oStrictHostKeyChecking=accept-new -i private_key -v ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} "
+        #     cd /home/ec2-user/backlog-clone && git pull origin main
+        #   "
