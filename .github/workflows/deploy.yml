@@ -6,13 +6,16 @@ on:
       - main
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/deploy.yml
-    with:
-      host: ${{ secrets.HOST_NAME }}
-      username: ${{ secrets.USER_NAME }}
-      port: ${{ secrets.SSH_PORT }}
-      key: ${{ secrets.PRIVATE_KEY }}
-      script: |
-        cd ${{ secrets.DEPLOY_DIR }}
-        git pull origin main
+    build:
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Deploy
+          with:
+            host: ${{ secrets.HOST_NAME }}
+            username: ${{ secrets.USER_NAME }}
+            port: ${{ secrets.SSH_PORT }}
+            key: ${{ secrets.PRIVATE_KEY }}
+            script: |
+              cd ${{ secrets.DEPLOY_DIR }}
+              git pull origin main
