@@ -1,18 +1,36 @@
-name: EC2 auto deploy
+name: Reusable Deploy Workflow
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call: # 再利用可能にするためのトリガー
+    inputs: # 必要なパラメータを定義
+      host:
+        required: true
+        type: string
+      username:
+        required: true
+        type: string
+      port:
+        required: false
+        type: string
+        default: "22"
+      key:
+        required: true
+        type: string
+      script:
+        required: true
+        type: string
 
 jobs:
-  call-workflow-1-in-local-repo:
-    uses: ./.github/workflows/deploy.yml
-    with:
-      host: ${{ secrets.HOST_NAME }}
-      username: ${{ secrets.USER_NAME }}
-      port: ${{ secrets.SSH_PORT }}
-      key: ${{ secrets.PRIVATE_KEY }}
-      script: |
-        cd ${{ secrets.DEPLOY_DIR }}
-        git pull origin main
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create SSH Key
+        run: |
+          echo "${{ inputs.key }}" > private_key
+          chmod 600 private_key
+
+      - name: Execute Deployment Script
+        run: |
+          ssh -oStrictHostKeyChecking=accept-new -i private_key -p ${{ inputs.port }} ${{ inputs.username }}@${{ inputs.host }} "
+            ${{ inputs.script }}
+          "
