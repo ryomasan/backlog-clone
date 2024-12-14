@@ -17,6 +17,6 @@ jobs:
           chmod 600 private_key
           
           # SSH接続してリポジトリのディレクトリで git pull
-          ssh -oStrictHostKeyChecking=no -i private_key ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} "
+          ssh -oStrictHostKeyChecking=accept-new -i private_key ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} "
             cd /home/ec2-user/backlog-clone && git pull origin main
           "
