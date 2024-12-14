@@ -14,7 +14,7 @@
                 <div class="select-option h-[130px] overflow-y-scroll">
                     <div @click="resetTags()" class="unsigned m-[5px]">未選択<span v-if="unSelected"
                             class="tag_checked">✔︎</span></div>
-                    <div @click.stop="selectTags(index)" v-for="(tag, index) in seachedTags" :key="index"
+                    <div @click.stop="selectTags(index)" v-for="(tag, index) in searchedTags" :key="index"
                         class="tag-item m-[5px]">
                         <div class="tag_name">{{ tag.name }}<span v-if="tag.isSelected" class="tag_checked">✔︎</span>
                         </div>
@@ -79,7 +79,7 @@ const isOpenModal = ref<boolean>(false)
 
 let taskStatus = ref('未対応');
 
-const seachedTags = computed(() => {
+const searchedTags = computed(() => {
     return tags.value.filter(tag => tag.name.includes(seachedTag.value))
 })
 
