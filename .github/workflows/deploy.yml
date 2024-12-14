@@ -1,0 +1,22 @@
+name: EC2 auto deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # デプロイする
+      - name: Deploy
+        run: |
+          # PRIVATE_KEY をファイルに書き込む
+          echo "${{ secrets.PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+          
+          # SSH接続してリポジトリのディレクトリで git pull
+          ssh -oStrictHostKeyChecking=no -i private_key ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} "
+            cd /home/ec2-user/backlog-clone && git pull origin main
+          "
