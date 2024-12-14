@@ -11,6 +11,15 @@ jobs:
       
       steps:
         - name: Deploy
+        - uses: actions/checkout@v2
+          with:
+              host: ${{ secrets.HOST_NAME }}         # Repository Secrets から取得
+              username: ${{ secrets.USER_NAME }}     # Repository Secrets から取得
+              port: ${{ secrets.SSH_PORT }}          # Repository Secrets から取得
+              key: ${{ secrets.PRIVATE_KEY }}        # Repository Secrets から取得
+              script: |
+                cd /home/ec2-user/backlog-clone
+                git pull origin main
           # run: |
           #  # SSH接続して、git pullする
           #  echo "${{ secrets.PRIVATE_KEY }}" > private_key
