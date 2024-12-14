@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  call-workflow-1-in-local-repo:
     uses: ./.github/workflows/deploy.yml
     with:
       host: ${{ secrets.HOST_NAME }}
