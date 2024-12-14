@@ -10,7 +10,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Deploy
-        - uses: actions/checkout@v2
+          uses: actions/checkout@v2
           with:
               host: ${{ secrets.HOST_NAME }}         # Repository Secrets から取得
               username: ${{ secrets.USER_NAME }}     # Repository Secrets から取得
