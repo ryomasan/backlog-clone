@@ -1,36 +1,18 @@
-name: Reusable Deploy Workflow
+name: EC2 auto deploy
 
 on:
-  workflow_call:
-    inputs:
-      host:
-        required: true
-        type: string
-      username:
-        required: true
-        type: string
-      port:
-        required: false
-        type: string
-        default: "22"
-      key:
-        required: true
-        type: string
-      script:
-        required: true
-        type: string
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create SSH Key
-        run: |
-          echo "${{ inputs.key }}" > private_key
-          chmod 600 private_key
-
-      - name: Execute Deployment Script
-        run: |
-          ssh -oStrictHostKeyChecking=accept-new -i private_key -p ${{ inputs.port }} ${{ inputs.username }}@${{ inputs.host }} "
-            ${{ inputs.script }}
-          "
+    uses: ./.github/workflows/deploy.yml
+    with:
+      host: ${{ secrets.HOST_NAME }}
+      username: ${{ secrets.USER_NAME }}
+      port: ${{ secrets.SSH_PORT }}
+      key: ${{ secrets.PRIVATE_KEY }}
+      script: |
+        cd ${{ secrets.DEPLOY_DIR }}
+        git pull origin main
