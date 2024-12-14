@@ -12,8 +12,6 @@ jobs:
       # デプロイする
       - name: Deploy
         run: |
-          echo "User: ${{ secrets.USER_NAME }}"
-           echo "Host: ${{ secrets.HOST_NAME }}"
           # PRIVATE_KEY をファイルに書き込む
           echo "${{ secrets.PRIVATE_KEY }}" > private_key
           chmod 600 private_key
