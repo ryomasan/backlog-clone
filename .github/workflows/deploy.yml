@@ -11,11 +11,8 @@ jobs:
       
       steps:
         - name: Deploy
-          with:
-            host: ${{ secrets.HOST_NAME }}
-            username: ${{ secrets.USER_NAME }}
-            port: ${{ secrets.SSH_PORT }}
-            key: ${{ secrets.PRIVATE_KEY }}
-            script: |
-              cd ${{ secrets.DEPLOY_DIR }}
-              git pull origin main
+          run: |
+           # SSH接続して、git pullする
+           echo "${{ secrets.PRIVATE_KEY }}" > private_key
+           chmod 600 private_key
+           ssh -oStrictHostKeyChecking=no ${{ secrets.USER_NAME }}@${{ secrets.HOST_NAME }} -i private_key "cd /home/ec2-user/backlog-clone && git fetch git@github.com:ryomasan/backlog-clone.git && git pull git@github.com:ryomasan/backlog-clone.git"
