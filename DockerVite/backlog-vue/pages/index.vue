@@ -9,7 +9,7 @@
             </div>
             <div v-if="isOpenFilter"
                 class="filter absolute bg-[#fff] h-[207px] w-[150px] z-10 border-solid border border-indigo-600">
-                <input v-model="seachedTag" type="text" class="search-box h-[30px] w-[140px] m-[5px] mb-[15px]"
+                <input v-model="searchedTag" type="text" class="search-box h-[30px] w-[140px] m-[5px] mb-[15px]"
                     placeholder="タグを検索">
                 <div class="select-option h-[130px] overflow-y-scroll">
                     <div @click="resetTags()" class="unsigned m-[5px]">未選択<span v-if="unSelected"
@@ -71,7 +71,7 @@ const tasks = ref<Task[]>([]);
 
 const tags = ref<Tag[]>([]);
 
-const seachedTag = ref<string>('');
+const searchedTag = ref<string>('');
 
 const isOpenFilter = ref<boolean>(false)
 
@@ -80,7 +80,7 @@ const isOpenModal = ref<boolean>(false)
 let taskStatus = ref('未対応');
 
 const searchedTags = computed(() => {
-    return tags.value.filter(tag => tag.name.includes(seachedTag.value))
+    return tags.value.filter(tag => tag.name.includes(searchedTag.value))
 })
 
 const toggleTagFilter = () => {
