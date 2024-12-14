@@ -1,8 +1,8 @@
 name: Reusable Deploy Workflow
 
 on:
-  workflow_call: # 再利用可能にするためのトリガー
-    inputs: # 必要なパラメータを定義
+  workflow_call:
+    inputs:
       host:
         required: true
         type: string
